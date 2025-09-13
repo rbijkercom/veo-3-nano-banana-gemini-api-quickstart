@@ -497,7 +497,7 @@ export default function ReviewPage() {
         </div>
 
         {/* Main Content Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+        <div className="grid grid-cols-1 gap-8 mb-8">
           {/* Left Column - Brand Identity Showcase (60%) */}
           <div className="lg:col-span-3">
             <Card>
