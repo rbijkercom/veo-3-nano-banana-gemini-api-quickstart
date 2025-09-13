@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, {
   useCallback,
@@ -6,50 +6,49 @@ import React, {
   useMemo,
   useRef,
   useState,
-} from "react";
-import Image from "next/image";
-import { Upload, Film, Image as ImageIcon } from "lucide-react";
-import Composer from "@/components/ui/Composer";
-import VideoPlayer from "@/components/ui/VideoPlayer";
-import { Skeleton } from "@/components/ui/skeleton";
+} from 'react';
+import Image from 'next/image';
+import { Upload, Film, Image as ImageIcon } from 'lucide-react';
+import Composer from '@/components/ui/Composer';
+import VideoPlayer from '@/components/ui/VideoPlayer';
 
 type VeoOperationName = string | null;
 
 type StudioMode =
-  | "create-image"
-  | "edit-image"
-  | "compose-image"
-  | "create-video";
+  | 'create-image'
+  | 'edit-image'
+  | 'compose-image'
+  | 'create-video';
 
 const POLL_INTERVAL_MS = 5000;
 
 const VeoStudio: React.FC = () => {
-  const [mode, setMode] = useState<StudioMode>("create-image");
-  const [prompt, setPrompt] = useState(""); // Video or image prompt
-  const [negativePrompt, setNegativePrompt] = useState("");
-  const [aspectRatio, setAspectRatio] = useState("16:9");
-  const [selectedModel, setSelectedModel] = useState("veo-3.0-generate-001");
+  const [mode, setMode] = useState<StudioMode>('create-image');
+  const [prompt, setPrompt] = useState(''); // Video or image prompt
+  const [negativePrompt, setNegativePrompt] = useState('');
+  const [aspectRatio, setAspectRatio] = useState('16:9');
+  const [selectedModel, setSelectedModel] = useState('veo-3.0-generate-001');
 
   // Update selected model when mode changes
   useEffect(() => {
-    if (mode === "create-video") {
-      setSelectedModel("veo-3.0-generate-001");
-    } else if (mode === "edit-image" || mode === "compose-image") {
-      setSelectedModel("gemini-2.5-flash-image-preview");
-    } else if (mode === "create-image") {
+    if (mode === 'create-video') {
+      setSelectedModel('veo-3.0-generate-001');
+    } else if (mode === 'edit-image' || mode === 'compose-image') {
+      setSelectedModel('gemini-2.5-flash-image-preview');
+    } else if (mode === 'create-image') {
       if (
-        !selectedModel.includes("gemini") &&
-        !selectedModel.includes("imagen")
+        !selectedModel.includes('gemini') &&
+        !selectedModel.includes('imagen')
       ) {
-        setSelectedModel("gemini-2.5-flash-image-preview");
+        setSelectedModel('gemini-2.5-flash-image-preview');
       }
     }
   }, [mode, selectedModel]);
 
   // Image generation prompts
-  const [imagePrompt, setImagePrompt] = useState("");
-  const [editPrompt, setEditPrompt] = useState("");
-  const [composePrompt, setComposePrompt] = useState("");
+  const [imagePrompt, setImagePrompt] = useState('');
+  const [editPrompt, setEditPrompt] = useState('');
+  const [composePrompt, setComposePrompt] = useState('');
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
@@ -61,9 +60,9 @@ const VeoStudio: React.FC = () => {
   // Debug multipleImageFiles state
   useEffect(() => {
     console.log(
-      "multipleImageFiles state changed:",
+      'multipleImageFiles state changed:',
       multipleImageFiles.length,
-      multipleImageFiles
+      multipleImageFiles,
     );
   }, [multipleImageFiles]);
 
@@ -95,52 +94,52 @@ const VeoStudio: React.FC = () => {
   // Friendly model label for UI
   const modelLabel = useMemo(() => {
     const cleaned = selectedModel
-      .replace(/_/g, " ")
-      .replace(/-/g, " ")
-      .replace(/preview/gi, "")
+      .replace(/_/g, ' ')
+      .replace(/-/g, ' ')
+      .replace(/preview/gi, '')
       .trim();
     return cleaned || selectedModel;
   }, [selectedModel]);
 
   // Rotating loading messages containing model name
   const loadingMessages = useMemo(() => {
-    if (mode === "create-video") {
+    if (mode === 'create-video') {
       return [
         `${modelLabel} is crafting your idea...`,
-        "Generating keyframes and motion...",
-        "Enhancing detail and lighting...",
-        "Color grading and encoding...",
-        "Almost there...",
-        "One more step...",
-        "Kidding, this takes a while...",
-        "Haha sorry",
-        "Did you know? That Trees are the second most photographed object in the world after the Sun.",
+        'Generating keyframes and motion...',
+        'Enhancing detail and lighting...',
+        'Color grading and encoding...',
+        'Almost there...',
+        'One more step...',
+        'Kidding, this takes a while...',
+        'Haha sorry',
+        'Did you know? That Trees are the second most photographed object in the world after the Sun.',
         "That's why we need to make sure your video is perfect.",
         "We're working on it...",
-        "Hang on a sec...",
-        "Almost done...",
-        "One more step...",
-        "Kidding, this takes a while...",
-        "Haha sorry",
-        "So How are you doing?",
-        "Crazy what progress can be made in a few seconds?",
-        "Let me check on it...",
-        "Okay almost done...",
+        'Hang on a sec...',
+        'Almost done...',
+        'One more step...',
+        'Kidding, this takes a while...',
+        'Haha sorry',
+        'So How are you doing?',
+        'Crazy what progress can be made in a few seconds?',
+        'Let me check on it...',
+        'Okay almost done...',
       ];
     }
     return [
       `${modelLabel} is crafting your image...`,
-      "Composing layout and subject...",
-      "Applying style and color...",
-      "Refining edges and textures...",
-      "Almost there...",
-      "One more step...",
-      "Kidding, this takes a while...",
-      "Haha sorry",
-      "So How are you doing?",
-      "Crazy what progress can be made in a few seconds?",
-      "Let me check on it...",
-      "Okay almost done...",
+      'Composing layout and subject...',
+      'Applying style and color...',
+      'Refining edges and textures...',
+      'Almost there...',
+      'One more step...',
+      'Kidding, this takes a while...',
+      'Haha sorry',
+      'So How are you doing?',
+      'Crazy what progress can be made in a few seconds?',
+      'Let me check on it...',
+      'Okay almost done...',
       "I promise I'm working on it...",
     ];
   }, [mode, modelLabel]);
@@ -150,7 +149,7 @@ const VeoStudio: React.FC = () => {
   // Single flag for whether we are actively generating
   const isLoadingUI = useMemo(
     () => isGenerating || imagenBusy || geminiBusy,
-    [isGenerating, imagenBusy, geminiBusy]
+    [isGenerating, imagenBusy, geminiBusy],
   );
 
   // Advance loading message while any generation is happening
@@ -166,15 +165,15 @@ const VeoStudio: React.FC = () => {
   }, [isLoadingUI, loadingMessages]);
 
   const canStart = useMemo(() => {
-    if (mode === "create-video") {
+    if (mode === 'create-video') {
       if (!prompt.trim()) return false;
       // For create-video, image is optional (can be text-to-video or image-to-video)
       return true;
-    } else if (mode === "create-image") {
+    } else if (mode === 'create-image') {
       return imagePrompt.trim() && !imagenBusy && !geminiBusy;
-    } else if (mode === "edit-image") {
+    } else if (mode === 'edit-image') {
       return editPrompt.trim() && (imageFile || generatedImage) && !geminiBusy;
-    } else if (mode === "compose-image") {
+    } else if (mode === 'compose-image') {
       // Allow composition with existing image + new images, or just new images
       const hasExistingImage = imageFile || generatedImage;
       const hasNewImages = multipleImageFiles.length > 0;
@@ -199,12 +198,12 @@ const VeoStudio: React.FC = () => {
   ]);
 
   const resetAll = () => {
-    setPrompt("");
-    setNegativePrompt("");
-    setAspectRatio("16:9");
-    setImagePrompt("");
-    setEditPrompt("");
-    setComposePrompt("");
+    setPrompt('');
+    setNegativePrompt('');
+    setAspectRatio('16:9');
+    setImagePrompt('');
+    setEditPrompt('');
+    setComposePrompt('');
     setImageFile(null);
     setMultipleImageFiles([]);
     setGeneratedImage(null);
@@ -226,120 +225,120 @@ const VeoStudio: React.FC = () => {
 
   // Imagen helper
   const generateWithImagen = useCallback(async () => {
-    console.log("Starting Imagen generation");
+    console.log('Starting Imagen generation');
     setImagenBusy(true);
     setGeneratedImage(null);
     try {
-      const resp = await fetch("/api/imagen/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const resp = await fetch('/api/imagen/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: imagePrompt }),
       });
 
       if (!resp.ok) {
-        console.error("Imagen API error:", resp.status, resp.statusText);
+        console.error('Imagen API error:', resp.status, resp.statusText);
         throw new Error(`API error: ${resp.status}`);
       }
 
       const json = await resp.json();
-      console.log("Imagen API response:", json);
+      console.log('Imagen API response:', json);
 
       if (json?.image?.imageBytes) {
         const dataUrl = `data:${json.image.mimeType};base64,${json.image.imageBytes}`;
         setGeneratedImage(dataUrl);
       } else if (json?.error) {
-        console.error("Imagen API returned error:", json.error);
+        console.error('Imagen API returned error:', json.error);
         throw new Error(json.error);
       }
     } catch (e) {
-      console.error("Error in generateWithImagen:", e);
+      console.error('Error in generateWithImagen:', e);
       alert(`Failed to generate image: ${e.message}`);
     } finally {
-      console.log("Resetting Imagen busy state");
+      console.log('Resetting Imagen busy state');
       setImagenBusy(false);
     }
   }, [imagePrompt]);
 
   // Gemini image generation helper
   const generateWithGemini = useCallback(async () => {
-    console.log("Starting Gemini image generation");
+    console.log('Starting Gemini image generation');
     setGeminiBusy(true);
     setGeneratedImage(null);
     try {
-      const resp = await fetch("/api/gemini/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const resp = await fetch('/api/gemini/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: imagePrompt }),
       });
 
       if (!resp.ok) {
-        console.error("Gemini API error:", resp.status, resp.statusText);
+        console.error('Gemini API error:', resp.status, resp.statusText);
         throw new Error(`API error: ${resp.status}`);
       }
 
       const json = await resp.json();
-      console.log("Gemini API response:", json);
+      console.log('Gemini API response:', json);
 
       if (json?.image?.imageBytes) {
         const dataUrl = `data:${json.image.mimeType};base64,${json.image.imageBytes}`;
         setGeneratedImage(dataUrl);
       } else if (json?.error) {
-        console.error("Gemini API returned error:", json.error);
+        console.error('Gemini API returned error:', json.error);
         throw new Error(json.error);
       }
     } catch (e) {
-      console.error("Error in generateWithGemini:", e);
+      console.error('Error in generateWithGemini:', e);
       // Show user-friendly error message
       alert(`Failed to generate image: ${e.message}`);
     } finally {
-      console.log("Resetting Gemini busy state");
+      console.log('Resetting Gemini busy state');
       setGeminiBusy(false);
     }
   }, [imagePrompt]);
 
   // Gemini image edit helper
   const editWithGemini = useCallback(async () => {
-    console.log("Starting Gemini image edit");
+    console.log('Starting Gemini image edit');
     setGeminiBusy(true);
     setGeneratedImage(null);
     try {
       const form = new FormData();
-      form.append("prompt", editPrompt);
+      form.append('prompt', editPrompt);
 
       if (imageFile) {
-        form.append("imageFile", imageFile);
+        form.append('imageFile', imageFile);
       } else if (generatedImage) {
-        const [meta, b64] = generatedImage.split(",");
-        const mime = meta?.split(";")?.[0]?.replace("data:", "") || "image/png";
-        form.append("imageBase64", b64);
-        form.append("imageMimeType", mime);
+        const [meta, b64] = generatedImage.split(',');
+        const mime = meta?.split(';')?.[0]?.replace('data:', '') || 'image/png';
+        form.append('imageBase64', b64);
+        form.append('imageMimeType', mime);
       }
 
-      const resp = await fetch("/api/gemini/edit", {
-        method: "POST",
+      const resp = await fetch('/api/gemini/edit', {
+        method: 'POST',
         body: form,
       });
 
       if (!resp.ok) {
-        console.error("Gemini edit API error:", resp.status, resp.statusText);
+        console.error('Gemini edit API error:', resp.status, resp.statusText);
         throw new Error(`API error: ${resp.status}`);
       }
 
       const json = await resp.json();
-      console.log("Gemini edit API response:", json);
+      console.log('Gemini edit API response:', json);
 
       if (json?.image?.imageBytes) {
         const dataUrl = `data:${json.image.mimeType};base64,${json.image.imageBytes}`;
         setGeneratedImage(dataUrl);
       } else if (json?.error) {
-        console.error("Gemini edit API returned error:", json.error);
+        console.error('Gemini edit API returned error:', json.error);
         throw new Error(json.error);
       }
     } catch (e) {
-      console.error("Error in editWithGemini:", e);
+      console.error('Error in editWithGemini:', e);
       alert(`Failed to edit image: ${e.message}`);
     } finally {
-      console.log("Resetting Gemini busy state after edit");
+      console.log('Resetting Gemini busy state after edit');
       setGeminiBusy(false);
     }
   }, [editPrompt, imageFile, generatedImage]);
@@ -350,20 +349,20 @@ const VeoStudio: React.FC = () => {
     setGeneratedImage(null);
     try {
       const form = new FormData();
-      form.append("prompt", composePrompt);
+      form.append('prompt', composePrompt);
 
       // Add newly uploaded images first
       for (const file of multipleImageFiles) {
-        form.append("imageFiles", file);
+        form.append('imageFiles', file);
       }
 
       // Include existing image last (if any)
       if (imageFile) {
-        form.append("imageFiles", imageFile);
+        form.append('imageFiles', imageFile);
       } else if (generatedImage) {
         // Convert base64 to blob and add as file
-        const [meta, b64] = generatedImage.split(",");
-        const mime = meta?.split(";")?.[0]?.replace("data:", "") || "image/png";
+        const [meta, b64] = generatedImage.split(',');
+        const mime = meta?.split(';')?.[0]?.replace('data:', '') || 'image/png';
         const byteCharacters = atob(b64);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -373,41 +372,41 @@ const VeoStudio: React.FC = () => {
         const blob = new Blob([byteArray], { type: mime });
 
         // Create a File object from the blob
-        const existingImageFile = new File([blob], "existing-image.png", {
+        const existingImageFile = new File([blob], 'existing-image.png', {
           type: mime,
         });
-        form.append("imageFiles", existingImageFile);
+        form.append('imageFiles', existingImageFile);
       }
 
-      const resp = await fetch("/api/gemini/edit", {
-        method: "POST",
+      const resp = await fetch('/api/gemini/edit', {
+        method: 'POST',
         body: form,
       });
 
       if (!resp.ok) {
         console.error(
-          "Gemini compose API error:",
+          'Gemini compose API error:',
           resp.status,
-          resp.statusText
+          resp.statusText,
         );
         throw new Error(`API error: ${resp.status}`);
       }
 
       const json = await resp.json();
-      console.log("Gemini compose API response:", json);
+      console.log('Gemini compose API response:', json);
 
       if (json?.image?.imageBytes) {
         const dataUrl = `data:${json.image.mimeType};base64,${json.image.imageBytes}`;
         setGeneratedImage(dataUrl);
       } else if (json?.error) {
-        console.error("Gemini compose API returned error:", json.error);
+        console.error('Gemini compose API returned error:', json.error);
         throw new Error(json.error);
       }
     } catch (e) {
-      console.error("Error in composeWithGemini:", e);
+      console.error('Error in composeWithGemini:', e);
       alert(`Failed to compose images: ${e.message}`);
     } finally {
-      console.log("Resetting Gemini busy state after compose");
+      console.log('Resetting Gemini busy state after compose');
       setGeminiBusy(false);
     }
   }, [composePrompt, multipleImageFiles, imageFile, generatedImage]);
@@ -416,31 +415,31 @@ const VeoStudio: React.FC = () => {
   const startGeneration = useCallback(async () => {
     if (!canStart) return;
 
-    if (mode === "create-video") {
+    if (mode === 'create-video') {
       setIsGenerating(true);
       setVideoUrl(null);
 
       const form = new FormData();
-      form.append("prompt", prompt);
-      form.append("model", selectedModel);
-      if (negativePrompt) form.append("negativePrompt", negativePrompt);
-      if (aspectRatio) form.append("aspectRatio", aspectRatio);
+      form.append('prompt', prompt);
+      form.append('model', selectedModel);
+      if (negativePrompt) form.append('negativePrompt', negativePrompt);
+      if (aspectRatio) form.append('aspectRatio', aspectRatio);
 
       if (imageFile || generatedImage) {
         if (imageFile) {
-          form.append("imageFile", imageFile);
+          form.append('imageFile', imageFile);
         } else if (generatedImage) {
-          const [meta, b64] = generatedImage.split(",");
+          const [meta, b64] = generatedImage.split(',');
           const mime =
-            meta?.split(";")?.[0]?.replace("data:", "") || "image/png";
-          form.append("imageBase64", b64);
-          form.append("imageMimeType", mime);
+            meta?.split(';')?.[0]?.replace('data:', '') || 'image/png';
+          form.append('imageBase64', b64);
+          form.append('imageMimeType', mime);
         }
       }
 
       try {
-        const resp = await fetch("/api/veo/generate", {
-          method: "POST",
+        const resp = await fetch('/api/veo/generate', {
+          method: 'POST',
           body: form,
         });
         const json = await resp.json();
@@ -449,16 +448,16 @@ const VeoStudio: React.FC = () => {
         console.error(e);
         setIsGenerating(false);
       }
-    } else if (mode === "create-image") {
+    } else if (mode === 'create-image') {
       // Use selected model (Imagen or Gemini)
-      if (selectedModel.includes("imagen")) {
+      if (selectedModel.includes('imagen')) {
         await generateWithImagen();
       } else {
         await generateWithGemini();
       }
-    } else if (mode === "edit-image") {
+    } else if (mode === 'edit-image') {
       await editWithGemini();
-    } else if (mode === "compose-image") {
+    } else if (mode === 'compose-image') {
       await composeWithGemini();
     }
   }, [
@@ -482,18 +481,18 @@ const VeoStudio: React.FC = () => {
     async function poll() {
       if (!operationName || videoUrl) return;
       try {
-        const resp = await fetch("/api/veo/operation", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const resp = await fetch('/api/veo/operation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: operationName }),
         });
         const fresh = await resp.json();
         if (fresh?.done) {
           const fileUri = fresh?.response?.generatedVideos?.[0]?.video?.uri;
           if (fileUri) {
-            const dl = await fetch("/api/veo/download", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
+            const dl = await fetch('/api/veo/download', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ uri: fileUri }),
             });
             const blob = await dl.blob();
@@ -531,10 +530,10 @@ const VeoStudio: React.FC = () => {
   const onPickMultipleImages = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+      const imageFiles = files.filter((file) => file.type.startsWith('image/'));
       const limitedFiles = imageFiles.slice(0, 10);
       setMultipleImageFiles((prevFiles) =>
-        [...prevFiles, ...limitedFiles].slice(0, 10)
+        [...prevFiles, ...limitedFiles].slice(0, 10),
       );
     }
   };
@@ -563,14 +562,14 @@ const VeoStudio: React.FC = () => {
     const blob = trimmedBlobRef.current || videoBlobRef.current;
     if (!blob) return;
     const isTrimmed = !!trimmedBlobRef.current;
-    const filename = isTrimmed ? "veo3_video_trimmed.webm" : "veo3_video.mp4";
+    const filename = isTrimmed ? 'veo3_video_trimmed.webm' : 'veo3_video.mp4';
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.style.display = "none";
+    const link = document.createElement('a');
+    link.style.display = 'none';
     link.href = url;
-    link.setAttribute("download", filename);
-    link.setAttribute("rel", "noopener");
-    link.target = "_self";
+    link.setAttribute('download', filename);
+    link.setAttribute('rel', 'noopener');
+    link.target = '_self';
     document.body.appendChild(link);
     link.click();
     setTimeout(() => {
@@ -588,19 +587,19 @@ const VeoStudio: React.FC = () => {
       const blob = await response.blob();
 
       // Determine file extension from MIME type
-      const mimeType = blob.type || "image/png";
-      const extension = mimeType.split("/")[1] || "png";
-      const safeModelName = selectedModel.replace(/[^a-zA-Z0-9-]/g, "_");
+      const mimeType = blob.type || 'image/png';
+      const extension = mimeType.split('/')[1] || 'png';
+      const safeModelName = selectedModel.replace(/[^a-zA-Z0-9-]/g, '_');
       const filename = `${safeModelName}.${extension}`;
 
       // Create download link
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.style.display = "none";
+      const link = document.createElement('a');
+      link.style.display = 'none';
       link.href = url;
-      link.setAttribute("download", filename);
-      link.setAttribute("rel", "noopener");
-      link.target = "_self";
+      link.setAttribute('download', filename);
+      link.setAttribute('rel', 'noopener');
+      link.target = '_self';
       document.body.appendChild(link);
       link.click();
       setTimeout(() => {
@@ -608,7 +607,7 @@ const VeoStudio: React.FC = () => {
         URL.revokeObjectURL(url);
       }, 0);
     } catch (error) {
-      console.error("Error downloading image:", error);
+      console.error('Error downloading image:', error);
     }
   };
 
@@ -628,16 +627,16 @@ const VeoStudio: React.FC = () => {
     e.stopPropagation();
     const files = Array.from(e.dataTransfer.files);
 
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    const imageFiles = files.filter((file) => file.type.startsWith('image/'));
 
     const limitedFiles = imageFiles.slice(0, 10);
 
     if (limitedFiles.length > 0) {
-      if (mode === "compose-image") {
+      if (mode === 'compose-image') {
         setMultipleImageFiles((prevFiles) =>
-          [...prevFiles, ...limitedFiles].slice(0, 10)
+          [...prevFiles, ...limitedFiles].slice(0, 10),
         );
-      } else if (mode === "edit-image") {
+      } else if (mode === 'edit-image') {
         setImageFile(limitedFiles[0]);
       }
     }
@@ -656,7 +655,7 @@ const VeoStudio: React.FC = () => {
           (isLoadingUI ? (
             <div className="w-full max-w-3xl">
               <div className="flex flex-col items-center justify-center gap-3 text-center px-4">
-                {mode === "create-video" ? (
+                {mode === 'create-video' ? (
                   <Film className="w-16 h-16 text-gray-400 animate-pulse" />
                 ) : (
                   <ImageIcon className="w-16 h-16 text-gray-400 animate-pulse" />
@@ -674,14 +673,14 @@ const VeoStudio: React.FC = () => {
             </div>
           ) : (
             <div className="w-full max-w-3xl">
-              {((mode === "edit-image" && !imageFile && !generatedImage) ||
-                (mode === "create-video" && !imageFile && !generatedImage)) && (
+              {/* Always show upload area when no image is available */}
+              {!imageFile && !generatedImage && (
                 <div
-                  className={`rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors ${"bg-white/10 border-gray-300/70 hover:bg-white/30"}`}
+                  className={`rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors ${'bg-white/10 border-gray-300/70 hover:bg-white/30'}`}
                   onClick={() => {
                     // Trigger single file input
                     const input = document.getElementById(
-                      "single-image-input"
+                      'single-image-input',
                     ) as HTMLInputElement;
                     input?.click();
                   }}
@@ -695,25 +694,33 @@ const VeoStudio: React.FC = () => {
                       <div className="text-sm opacity-80 mt-1">
                         PNG, JPG, WEBP up to 10MB
                       </div>
-                      {mode === "edit-image" &&
-                        (imageFile || generatedImage) && (
-                          <div className="text-sm mt-2 text-green-600">
-                            ✓ Image selected
-                          </div>
-                        )}
-
-                      {mode === "create-video" &&
-                        (imageFile || generatedImage) && (
-                          <div className="text-sm mt-2 text-green-600">
-                            ✓ Image selected for video generation
-                          </div>
-                        )}
+                      {mode === 'create-image' && (
+                        <div className="text-sm mt-2 text-blue-600">
+                          Upload an image or just use text prompts to create
+                        </div>
+                      )}
+                      {mode === 'edit-image' && (
+                        <div className="text-sm mt-2 text-orange-600">
+                          <strong>Required:</strong> Upload an image to edit
+                        </div>
+                      )}
+                      {mode === 'compose-image' && (
+                        <div className="text-sm mt-2 text-green-600">
+                          <strong>Required:</strong> Upload images to compose
+                          together
+                        </div>
+                      )}
+                      {mode === 'create-video' && (
+                        <div className="text-sm mt-2 text-purple-600">
+                          Upload an image for video generation (optional)
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
 
-              {mode === "edit-image" && imageFile && uploadedImageUrl && (
+              {mode === 'edit-image' && imageFile && uploadedImageUrl && (
                 <div className="w-full max-w-4xl aspect-video overflow-hidden rounded-lg border relative mx-auto">
                   <Image
                     src={uploadedImageUrl}
@@ -725,13 +732,15 @@ const VeoStudio: React.FC = () => {
                 </div>
               )}
 
-              {!(
-                mode === "edit-image" ||
-                mode === "compose-image" ||
-                mode === "create-video"
-              ) && (
-                <div className="text-stone-400 select-none text-center w-full">
-                  Nothing to see here
+              {mode === 'create-image' && !imageFile && !generatedImage && (
+                <div className="text-stone-600 select-none text-center w-full mt-8">
+                  <div className="text-lg font-medium mb-2">
+                    Create Images with AI
+                  </div>
+                  <div className="text-sm opacity-80">
+                    Use text prompts to generate images, or upload an image as
+                    reference
+                  </div>
                 </div>
               )}
 
@@ -753,7 +762,7 @@ const VeoStudio: React.FC = () => {
               />
 
               {/* Compose mode initial state when no generated image */}
-              {mode === "compose-image" && !generatedImage && (
+              {mode === 'compose-image' && !generatedImage && (
                 <div className="w-full mt-8 flex justify-center">
                   <div className="max-w-3xl">
                     <div className="text-center text-slate-600 mb-6">
@@ -768,10 +777,10 @@ const VeoStudio: React.FC = () => {
 
                     {/* Upload area for compose mode */}
                     <div
-                      className={`rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors ${"bg-white/10 border-gray-300/70 hover:bg-white/30"}`}
+                      className={`rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors ${'bg-white/10 border-gray-300/70 hover:bg-white/30'}`}
                       onClick={() => {
                         const input = document.getElementById(
-                          "multiple-image-input"
+                          'multiple-image-input',
                         ) as HTMLInputElement;
                         input?.click();
                       }}
@@ -791,11 +800,11 @@ const VeoStudio: React.FC = () => {
                           {multipleImageFiles.length > 0 && (
                             <div className="text-sm mt-2 text-green-600">
                               ✓ {multipleImageFiles.length} image
-                              {multipleImageFiles.length > 1 ? "s" : ""}{" "}
-                              selected{" "}
+                              {multipleImageFiles.length > 1 ? 's' : ''}{' '}
+                              selected{' '}
                               {multipleImageFiles.length >= 10
-                                ? "(max reached)"
-                                : ""}
+                                ? '(max reached)'
+                                : ''}
                             </div>
                           )}
                         </div>
@@ -832,9 +841,9 @@ const VeoStudio: React.FC = () => {
 
         {generatedImage &&
           !videoUrl &&
-          !(mode === "create-video" && isLoadingUI) && (
+          !(mode === 'create-video' && isLoadingUI) && (
             <div className="w-full max-w-5xl mx-auto">
-              {mode === "compose-image" ? (
+              {mode === 'compose-image' ? (
                 /* Compose mode: Image on top, upload area below */
                 <div className="flex flex-col gap-6 items-center">
                   <div className="w-full max-w-2xl relative">
@@ -865,7 +874,7 @@ const VeoStudio: React.FC = () => {
                       className="rounded-lg border-2 border-dashed p-6 cursor-pointer transition-colors bg-white/10 border-gray-300/70 hover:bg-white/30"
                       onClick={() => {
                         const input = document.getElementById(
-                          "multiple-image-input"
+                          'multiple-image-input',
                         ) as HTMLInputElement;
                         input?.click();
                       }}
