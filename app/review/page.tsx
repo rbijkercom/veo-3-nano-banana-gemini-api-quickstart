@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { StarRating } from '@/components/StarRating';
-import { CommentSection } from '@/components/CommentSection';
+import { StarRating } from '@/components/star-rating';
+import { CommentSection } from '@/components/comment-section';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import {
   compressImage,

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
-import Slider from "rc-slider";
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import Slider from 'rc-slider';
 import {
   Play,
   Pause,
@@ -9,7 +9,7 @@ import {
   VolumeX,
   Scissors,
   Download,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface VideoPlayerProps {
   src: string;
@@ -21,14 +21,14 @@ interface VideoPlayerProps {
 
 const formatTime = (seconds: number) => {
   if (isNaN(seconds)) {
-    return "00:00";
+    return '00:00';
   }
   const date = new Date(seconds * 1000);
   const hh = date.getUTCHours();
   const mm = date.getUTCMinutes();
-  const ss = date.getUTCSeconds().toString().padStart(2, "0");
+  const ss = date.getUTCSeconds().toString().padStart(2, '0');
   if (hh) {
-    return `${hh}:${mm.toString().padStart(2, "0")}:${ss}`;
+    return `${hh}:${mm.toString().padStart(2, '0')}:${ss}`;
   }
   return `${mm}:${ss}`;
 };
@@ -118,7 +118,7 @@ export default function VideoPlayer({
           }
           const startTime = effectiveStartTime;
           if (playerRef.current) {
-            if (typeof playerRef.current.fastSeek === "function") {
+            if (typeof playerRef.current.fastSeek === 'function') {
               playerRef.current.fastSeek(startTime);
             } else {
               playerRef.current.currentTime = startTime;
@@ -148,16 +148,16 @@ export default function VideoPlayer({
         setTrimRange([0, computed]);
         setEffectiveDuration(computed);
         setEffectiveStartTime(0);
-        video.removeEventListener("seeked", onSeeked);
+        video.removeEventListener('seeked', onSeeked);
         try {
-          if (typeof video.fastSeek === "function") {
+          if (typeof video.fastSeek === 'function') {
             video.fastSeek(0);
           } else {
             video.currentTime = 0;
           }
         } catch {}
       };
-      video.addEventListener("seeked", onSeeked);
+      video.addEventListener('seeked', onSeeked);
       try {
         video.currentTime = 1e9;
       } catch {}
@@ -187,7 +187,7 @@ export default function VideoPlayer({
     const span = Number.isFinite(spanRaw) && spanRaw > 0 ? spanRaw : 0;
     const seekToTime = newPlayed * span + (isTrimmed ? effectiveStartTime : 0);
     if (playerRef.current) {
-      if (typeof playerRef.current.fastSeek === "function") {
+      if (typeof playerRef.current.fastSeek === 'function') {
         playerRef.current.fastSeek(seekToTime);
       } else {
         playerRef.current.currentTime = seekToTime;
@@ -216,14 +216,14 @@ export default function VideoPlayer({
       if (!stream) return null;
 
       const mimeCandidates = [
-        "video/webm;codecs=vp9,opus",
-        "video/webm;codecs=vp8,opus",
-        "video/webm",
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm',
       ];
-      let mimeType = "";
+      let mimeType = '';
       for (const m of mimeCandidates) {
         if (
-          typeof MediaRecorder !== "undefined" &&
+          typeof MediaRecorder !== 'undefined' &&
           MediaRecorder.isTypeSupported(m)
         ) {
           mimeType = m;
@@ -236,7 +236,7 @@ export default function VideoPlayer({
         let resolved = false;
         const recorder = new MediaRecorder(
           stream,
-          mimeType ? { mimeType } : undefined
+          mimeType ? { mimeType } : undefined,
         );
         recorder.ondataavailable = (e) => {
           if (e.data && e.data.size > 0) chunks.push(e.data);
@@ -245,7 +245,7 @@ export default function VideoPlayer({
           if (resolved) return;
           resolved = true;
           setIsRecording(false);
-          const type = recorder.mimeType || mimeType || "video/webm";
+          const type = recorder.mimeType || mimeType || 'video/webm';
           resolve(new Blob(chunks, { type }));
         };
         recorder.onerror = () => {
@@ -258,7 +258,7 @@ export default function VideoPlayer({
         const onTick = () => {
           const now = playerRef.current?.currentTime ?? 0;
           if (now >= endTime) {
-            video.removeEventListener("timeupdate", onTick);
+            video.removeEventListener('timeupdate', onTick);
             try {
               recorder.stop();
             } catch {}
@@ -267,8 +267,8 @@ export default function VideoPlayer({
             } catch {}
           }
         };
-        video.addEventListener("timeupdate", onTick);
-        if (typeof video.fastSeek === "function") {
+        video.addEventListener('timeupdate', onTick);
+        if (typeof video.fastSeek === 'function') {
           video.fastSeek(startTime);
         } else {
           video.currentTime = startTime;
@@ -284,7 +284,7 @@ export default function VideoPlayer({
         video.play();
       });
     },
-    []
+    [],
   );
 
   const handleTrim = useCallback(async () => {
@@ -296,7 +296,7 @@ export default function VideoPlayer({
     setPlaying(false);
 
     if (playerRef.current) {
-      if (typeof playerRef.current.fastSeek === "function") {
+      if (typeof playerRef.current.fastSeek === 'function') {
         playerRef.current.fastSeek(startTime);
       } else {
         playerRef.current.currentTime = startTime;
@@ -317,7 +317,7 @@ export default function VideoPlayer({
     setEffectiveDuration(duration);
     setEffectiveStartTime(0);
     if (playerRef.current) {
-      if (typeof playerRef.current.fastSeek === "function") {
+      if (typeof playerRef.current.fastSeek === 'function') {
         playerRef.current.fastSeek(0);
       } else {
         playerRef.current.currentTime = 0;
@@ -354,7 +354,7 @@ export default function VideoPlayer({
               const currentTime = playerRef.current?.currentTime || 0;
               const startTime = trimRange[0];
               if (currentTime < startTime) {
-                if (typeof playerRef.current?.fastSeek === "function") {
+                if (typeof playerRef.current?.fastSeek === 'function') {
                   playerRef.current.fastSeek(startTime);
                 } else if (playerRef.current) {
                   playerRef.current.currentTime = startTime;
@@ -384,7 +384,7 @@ export default function VideoPlayer({
                     className="absolute inset-y-0 left-0 pointer-events-none z-0"
                     style={{
                       width: `${(trimRange[0] / (duration || 1)) * 100}%`,
-                      backgroundColor: "rgba(0,0,0,0.5)",
+                      backgroundColor: 'rgba(0,0,0,0.5)',
                       borderRadius: 8,
                       height: 28,
                     }}
@@ -393,7 +393,7 @@ export default function VideoPlayer({
                     className="absolute inset-y-0 right-0 pointer-events-none z-0"
                     style={{
                       width: `${(1 - trimRange[1] / (duration || 1)) * 100}%`,
-                      backgroundColor: "rgba(0,0,0,0.5)",
+                      backgroundColor: 'rgba(0,0,0,0.5)',
                       borderRadius: 8,
                       height: 28,
                     }}
@@ -409,15 +409,15 @@ export default function VideoPlayer({
                       disabled={duration === 0}
                       styles={{
                         rail: {
-                          backgroundColor: "transparent",
+                          backgroundColor: 'transparent',
                         },
-                        track: { height: 24, backgroundColor: "transparent" },
+                        track: { height: 24, backgroundColor: 'transparent' },
                         handle: {
                           width: 8,
                           height: 28,
                           borderRadius: 4,
-                          backgroundColor: "#000",
-                          borderColor: "#000",
+                          backgroundColor: '#000',
+                          borderColor: '#000',
                           marginBottom: 10,
                         },
                       }}
@@ -471,13 +471,13 @@ export default function VideoPlayer({
               onChange={handleSeekChange}
               onAfterChange={() => setSeeking(false)}
               styles={{
-                track: { backgroundColor: "#0ea5e9" },
-                handle: { backgroundColor: "#0ea5e9", borderColor: "#0ea5e9" },
+                track: { backgroundColor: '#0ea5e9' },
+                handle: { backgroundColor: '#0ea5e9', borderColor: '#0ea5e9' },
               }}
             />
           </div>
           <div className="text-sm text-black">
-            {formatTime(currentDisplaySeconds)} /{" "}
+            {formatTime(currentDisplaySeconds)} /{' '}
             {formatTime(totalDisplaySeconds)}
           </div>
           <div className="flex items-center gap-2">
@@ -499,19 +499,19 @@ export default function VideoPlayer({
                 value={volume}
                 onChange={handleVolumeChange}
                 styles={{
-                  track: { backgroundColor: "white" },
-                  handle: { backgroundColor: "white", borderColor: "white" },
+                  track: { backgroundColor: 'white' },
+                  handle: { backgroundColor: 'white', borderColor: 'white' },
                 }}
               />
             </div>
             <button
               onClick={() => setShowTrimBar((s) => !s)}
-              title={showTrimBar ? "Hide trimmer" : "Show trimmer"}
+              title={showTrimBar ? 'Hide trimmer' : 'Show trimmer'}
               className={`ml-1 focus:outline-none hover:opacity-80 text-black`}
             >
               <Scissors
                 className={`w-5 h-5 transition-transform duration-150 ${
-                  showTrimBar ? "rotate-270" : "rotate-0"
+                  showTrimBar ? 'rotate-270' : 'rotate-0'
                 }`}
               />
             </button>
