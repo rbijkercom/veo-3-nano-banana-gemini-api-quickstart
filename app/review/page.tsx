@@ -205,33 +205,10 @@ export default function ReviewPage() {
           size: imageFile.size,
         });
       } else {
-        const currentImageSrc =
-          uploadedImagePreview ||
-          'https://images.unsplash.com/photo-1614029896656-a094f640558d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBidXNpbmVzcyUyMHdlYnNpdGUlMjBzY3JlZW5zaG90fGVufDF8fHx8MTc1Nzc1MTgwOHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral';
-
-        addLog('📱 Starting image generation with Gemini...');
-        addLog('🔗 Fetching default brand showcase image...');
-        console.log('[ReviewPage] Fetching image from URL:', currentImageSrc);
-
-        // Fetch the current image
-        const imageResponse = await fetch(currentImageSrc);
-        if (!imageResponse.ok) {
-          throw new Error(
-            `Failed to fetch base image: ${imageResponse.status}`,
-          );
-        }
-
-        addLog('✅ Base image retrieved successfully');
-        addLog('📤 Preparing image for Gemini API...');
-
-        const imageBlob = await imageResponse.blob();
-        imageFile = new File([imageBlob], 'brand-showcase.jpg', {
-          type: imageBlob.type || 'image/jpeg',
-        });
-        console.log('[ReviewPage] Created file from blob:', {
-          type: imageFile.type,
-          size: imageFile.size,
-        });
+        // No image available - require user to upload one
+        addLog('❌ No image available for generation');
+        addLog('📱 Please upload an image first');
+        throw new Error('Please upload an image before generating');
       }
 
       if (useBase64) {
@@ -567,30 +544,167 @@ export default function ReviewPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="flex justify-center">
-                  <div className="relative">
-                    <ImageWithFallback
-                      src={
-                        updatedImageSrc ||
-                        uploadedImagePreview ||
-                        'https://images.unsplash.com/photo-1614029896656-a094f640558d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBidXNpbmVzcyUyMHdlYnNpdGUlMjBzY3JlZW5zaG90fGVufDF8fHx8MTc1Nzc1MTgwOHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-                      }
-                      alt="Business website Brand Identity Showcase showing logo, tagline and intro message"
-                      className={`w-full h-auto rounded-lg shadow-lg transition-opacity duration-500 ${
-                        isGeneratingImage ? 'opacity-50' : 'opacity-100'
-                      }`}
-                    />
-                    {isGeneratingImage && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-lg">
-                        <div className="bg-background/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-                          <p className="text-muted-foreground">
-                            Generating Brand Identity Showcase...
-                          </p>
+                {/* Show both original and generated images side by side when we have a generated image */}
+                {updatedImageSrc ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Original Image */}
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground text-center">
+                          Original
+                        </h4>
+                        <div className="relative">
+                          {uploadedImagePreview ? (
+                            <img
+                              src={uploadedImagePreview}
+                              alt="Original brand identity showcase"
+                              className="w-full h-auto rounded-lg shadow-lg border-2 border-muted"
+                              style={{ width: '100%', height: 'auto' }}
+                            />
+                          ) : (
+                            <div className="w-full h-64 rounded-lg shadow-lg border-2 border-dashed border-muted flex items-center justify-center bg-muted/10">
+                              <div className="text-center text-muted-foreground">
+                                <p className="text-sm">No original image</p>
+                                <p className="text-xs">
+                                  Upload an image to see comparison
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    )}
+
+                      {/* Generated Image */}
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-primary text-center">
+                          AI Generated
+                        </h4>
+                        <div className="relative">
+                          <img
+                            src={updatedImageSrc}
+                            alt="AI generated brand identity showcase"
+                            className={`w-full h-auto rounded-lg shadow-lg border-2 border-primary transition-opacity duration-500 ${
+                              isGeneratingImage ? 'opacity-50' : 'opacity-100'
+                            }`}
+                            style={{ width: '100%', height: 'auto' }}
+                          />
+                          {isGeneratingImage && (
+                            <div className="absolute inset-0 flex items-center justify-center rounded-lg">
+                              <div className="bg-background/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+                                <p className="text-muted-foreground">
+                                  Generating Brand Identity Showcase...
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Comparison Actions */}
+                    <div className="flex justify-center gap-4 pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          // Use the generated image as the new base for further editing
+                          console.log(
+                            '[ReviewPage] Using generated image as new base',
+                          );
+                        }}
+                        disabled={isGeneratingImage}
+                      >
+                        Continue Editing This Version
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          console.log('[ReviewPage] Clearing generated image');
+                          if (
+                            updatedImageSrc &&
+                            updatedImageSrc.startsWith('blob:')
+                          ) {
+                            URL.revokeObjectURL(updatedImageSrc);
+                          }
+                          setUpdatedImageSrc('');
+                          setGenerationLogs([]);
+                        }}
+                        disabled={isGeneratingImage}
+                      >
+                        Start Over
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          console.log(
+                            '[ReviewPage] Clearing all images and starting fresh',
+                          );
+                          // Clear generated image
+                          if (
+                            updatedImageSrc &&
+                            updatedImageSrc.startsWith('blob:')
+                          ) {
+                            URL.revokeObjectURL(updatedImageSrc);
+                          }
+                          setUpdatedImageSrc('');
+
+                          // Clear uploaded image
+                          if (
+                            uploadedImagePreview &&
+                            uploadedImagePreview.startsWith('blob:')
+                          ) {
+                            URL.revokeObjectURL(uploadedImagePreview);
+                          }
+                          setUploadedImagePreview('');
+                          setUploadedImage(null);
+
+                          // Clear logs and prompt
+                          setGenerationLogs([]);
+                          setGenerateImagePrompt('');
+                        }}
+                        disabled={isGeneratingImage}
+                      >
+                        Clear All
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* Single image view when no generated image exists */
+                  <div className="flex justify-center">
+                    <div className="relative">
+                      {uploadedImagePreview ? (
+                        <>
+                          <ImageWithFallback
+                            src={uploadedImagePreview}
+                            alt="Business website Brand Identity Showcase showing logo, tagline and intro message"
+                            className={`w-full h-auto rounded-lg shadow-lg transition-opacity duration-500 ${
+                              isGeneratingImage ? 'opacity-50' : 'opacity-100'
+                            }`}
+                          />
+                          {isGeneratingImage && (
+                            <div className="absolute inset-0 flex items-center justify-center rounded-lg">
+                              <div className="bg-background/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+                                <p className="text-muted-foreground">
+                                  Generating Brand Identity Showcase...
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="w-full max-w-2xl h-64 rounded-lg shadow-lg border-2 border-dashed border-muted flex items-center justify-center bg-muted/10">
+                          <div className="text-center text-muted-foreground">
+                            <p className="text-lg font-medium mb-2">
+                              No Image Uploaded
+                            </p>
+                            <p className="text-sm">
+                              Upload an image above to get started
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -742,12 +856,19 @@ export default function ReviewPage() {
                         className="space-y-4"
                       >
                         <Input
-                          placeholder="e.g., change to blue color scheme, add tech elements, make more minimalist..."
+                          placeholder={
+                            !uploadedImage && !updatedImageSrc
+                              ? 'Upload an image first to start editing...'
+                              : 'e.g., change to blue color scheme, add tech elements, make more minimalist...'
+                          }
                           value={generateImagePrompt}
                           onChange={(e) =>
                             setGenerateImagePrompt(e.target.value)
                           }
-                          disabled={isGeneratingImage}
+                          disabled={
+                            isGeneratingImage ||
+                            (!uploadedImage && !updatedImageSrc)
+                          }
                           className="w-full"
                         />
 
@@ -771,12 +892,16 @@ export default function ReviewPage() {
                           <Button
                             type="submit"
                             disabled={
-                              !generateImagePrompt.trim() || isGeneratingImage
+                              !generateImagePrompt.trim() ||
+                              isGeneratingImage ||
+                              (!uploadedImage && !updatedImageSrc)
                             }
                             className="flex-1"
                           >
                             {isGeneratingImage
                               ? 'Generating...'
+                              : !uploadedImage && !updatedImageSrc
+                              ? 'Upload Image First'
                               : updatedImageSrc &&
                                 updatedImageSrc.startsWith('data:')
                               ? 'Continue Editing'
