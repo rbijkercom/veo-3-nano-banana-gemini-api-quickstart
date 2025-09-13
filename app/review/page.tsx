@@ -9,11 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/star-rating';
 import { CommentSection } from '@/components/comment-section';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
-import {
-  compressImage,
-  shouldCompressImage,
-  validateImageFile,
-} from '@/lib/imageUtils';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import { useImageGeneration } from '@/hooks/useImageGeneration';
 
 export default function ReviewPage() {
   const [selectedOption, setSelectedOption] = useState('');
@@ -24,10 +21,31 @@ export default function ReviewPage() {
   const [showClarityQuestion, setShowClarityQuestion] = useState(false);
   const [updatedImageSrc, setUpdatedImageSrc] = useState('');
   const [generateImagePrompt, setGenerateImagePrompt] = useState('');
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [generationLogs, setGenerationLogs] = useState<string[]>([]);
-  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
-  const [uploadedImagePreview, setUploadedImagePreview] = useState<string>('');
+
+  // Use custom hooks for image handling
+  const {
+    uploadedImage,
+    uploadedImagePreview,
+    isUploading,
+    handleImageUpload,
+    clearUploadedImage,
+  } = useImageUpload();
+
+  const {
+    isGenerating: isGeneratingImage,
+    generationLogs,
+    generateImage,
+    clearLogs,
+  } = useImageGeneration({
+    onSuccess: (imageUrl) => {
+      setUpdatedImageSrc(imageUrl);
+    },
+    onError: (error) => {
+      console.error('Image generation failed:', error);
+    },
+    fallbackImageUrl:
+      'https://images.unsplash.com/photo-1710799885122-428e63eff691?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcmVhdGl2ZSUyMGJ1c2luZXNzJTIwd2Vic2l0ZSUyMG1vY2t1cCUyMGRlc2lnbnxlbnwxfHx8fDE3NTc3NTQ5Mjd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+  });
 
   const correctAnswer =
     'Digital marketing and web development services for small businesses';
@@ -72,349 +90,26 @@ export default function ReviewPage() {
     setClarityRating(rating);
   };
 
-  const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
-    const logMessage = `${timestamp}: ${message}`;
-    console.log(`[ReviewPage] ${logMessage}`);
-    setGenerationLogs((prev) => [...prev, logMessage]);
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUploadChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
-    console.log('[ReviewPage] Image upload triggered:', file);
-
     if (!file) return;
 
-    // Validate the file
-    const validation = validateImageFile(file);
-    if (!validation.valid) {
-      console.error('[ReviewPage] File validation failed:', validation.error);
-      alert(validation.error);
-      return;
-    }
+    await handleImageUpload(file);
 
-    console.log('[ReviewPage] Image upload valid:', {
-      name: file.name,
-      type: file.type,
-      size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-    });
-
-    let finalFile = file;
-
-    // Compress image if it's too large for optimal processing
-    if (shouldCompressImage(file, 5)) {
-      // Compress if larger than 5MB
-      try {
-        console.log('[ReviewPage] Compressing large image...');
-        const compressed = await compressImage(file, 5, 0.8);
-        finalFile = compressed.file;
-
-        console.log('[ReviewPage] Image compressed:', {
-          originalSize: `${(compressed.originalSize / 1024 / 1024).toFixed(
-            2,
-          )}MB`,
-          compressedSize: `${(compressed.compressedSize / 1024 / 1024).toFixed(
-            2,
-          )}MB`,
-          ratio: `${compressed.compressionRatio.toFixed(2)}x`,
-        });
-
-        // Show user that compression happened
-        if (compressed.compressionRatio > 1.5) {
-          alert(
-            `Image compressed from ${(
-              compressed.originalSize /
-              1024 /
-              1024
-            ).toFixed(2)}MB to ${(
-              compressed.compressedSize /
-              1024 /
-              1024
-            ).toFixed(2)}MB for better processing.`,
-          );
-        }
-      } catch (error) {
-        console.error('[ReviewPage] Compression failed:', error);
-        alert('Failed to compress image. Using original file.');
-      }
-    }
-
-    setUploadedImage(finalFile);
-
-    // Create preview URL
-    const previewUrl = URL.createObjectURL(finalFile);
-    setUploadedImagePreview(previewUrl);
-
-    // Clear any existing generated image
+    // Clear any existing generated image when uploading new image
     if (updatedImageSrc && updatedImageSrc.startsWith('blob:')) {
       URL.revokeObjectURL(updatedImageSrc);
     }
     setUpdatedImageSrc('');
-
-    console.log('[ReviewPage] Image preview created:', previewUrl);
   };
 
   const handleGenerateImage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!generateImagePrompt.trim()) return;
 
-    console.log('[ReviewPage] Starting image generation process');
-    console.log('[ReviewPage] Current state:', {
-      hasUploadedImage: !!uploadedImage,
-      hasUpdatedImage: !!updatedImageSrc,
-      hasPreviewImage: !!uploadedImagePreview,
-      prompt: generateImagePrompt,
-    });
-
-    setIsGeneratingImage(true);
-    setGenerationLogs([]);
-
-    try {
-      let imageFile: File | null = null;
-      let useBase64 = false;
-      let base64Data = '';
-      let mimeType = '';
-
-      // Priority: Use last generated image > uploaded image > default image
-      // This allows for iterative editing of the same image
-      if (updatedImageSrc && updatedImageSrc.startsWith('data:')) {
-        addLog('🔄 Using last generated image for iterative editing...');
-
-        // Extract base64 data and mime type from data URL
-        const [header, data] = updatedImageSrc.split(',');
-        const mimeMatch = header.match(/data:([^;]+)/);
-
-        useBase64 = true;
-        base64Data = data;
-        mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
-
-        console.log('[ReviewPage] Using last generated image as base64:', {
-          mimeType,
-          dataLength: base64Data.length,
-          isDataUrl: true,
-          headerSample: header.substring(0, 50),
-          dataSample: data.substring(0, 50) + '...',
-          hasComma: updatedImageSrc.includes(','),
-        });
-      } else if (uploadedImage) {
-        addLog('📱 Using uploaded image for generation...');
-        imageFile = uploadedImage;
-        console.log('[ReviewPage] Using uploaded image:', {
-          name: imageFile.name,
-          type: imageFile.type,
-          size: imageFile.size,
-        });
-      } else {
-        // No image available - require user to upload one
-        addLog('❌ No image available for generation');
-        addLog('📱 Please upload an image first');
-        throw new Error('Please upload an image before generating');
-      }
-
-      if (useBase64) {
-        addLog(
-          `🖼️ Image type: ${mimeType}, Size: ${(
-            (base64Data.length * 0.75) /
-            1024 /
-            1024
-          ).toFixed(2)}MB (base64)`,
-        );
-      } else if (imageFile) {
-        addLog(
-          `🖼️ Image type: ${imageFile.type}, Size: ${(
-            imageFile.size /
-            1024 /
-            1024
-          ).toFixed(2)}MB`,
-        );
-      }
-
-      // Enhanced prompt for Gemini - contextual based on image source
-      let enhancedPrompt: string;
-
-      if (updatedImageSrc && updatedImageSrc.startsWith('data:')) {
-        // Iterative editing prompt
-        enhancedPrompt = `Continue editing this brand identity showcase image that was previously modified. Apply these additional changes: ${generateImagePrompt}. Keep all existing modifications and the overall professional appearance. Maintain the current layout, branding consistency, typography, and visual hierarchy. Keep the same dimensions and aspect ratio.`;
-        addLog('🔄 Using iterative editing prompt for generated image');
-      } else if (uploadedImage) {
-        // User uploaded image prompt
-        enhancedPrompt = `Edit this uploaded brand identity showcase image. Keep the overall layout, branding consistency, and professional appearance. Only modify these specific elements: ${generateImagePrompt}. Maintain clean modern business website design, proper typography, and visual hierarchy. Keep the same dimensions and aspect ratio.`;
-        addLog('📱 Using custom image editing prompt');
-      } else {
-        // Default image prompt
-        enhancedPrompt = `Edit this brand identity showcase image. Keep the overall layout, branding consistency, and professional appearance. Only modify these specific elements: ${generateImagePrompt}. Maintain clean modern business website design, proper typography, and visual hierarchy. Keep the same dimensions and aspect ratio.`;
-        addLog('🖼️ Using default image editing prompt');
-      }
-
-      addLog('🤖 Sending request to Gemini 2.5 Flash Image...');
-      addLog(`📝 Prompt: "${enhancedPrompt.substring(0, 100)}..."`);
-      console.log('[ReviewPage] Full prompt:', enhancedPrompt);
-
-      // Prepare form data for Gemini API
-      const formData = new FormData();
-      formData.append('prompt', enhancedPrompt);
-
-      if (useBase64) {
-        // Validate base64 data
-        if (!base64Data || base64Data.length === 0) {
-          throw new Error('Invalid base64 data extracted from generated image');
-        }
-
-        // Try to convert base64 back to File as a more reliable approach
-        try {
-          const binaryString = atob(base64Data);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          const blob = new Blob([bytes], { type: mimeType });
-          const file = new File([blob], 'generated-image.png', {
-            type: mimeType,
-          });
-
-          // Use file approach instead of base64 for better compatibility
-          formData.append('imageFiles', file);
-          console.log('[ReviewPage] FormData prepared with converted file:', {
-            promptLength: enhancedPrompt.length,
-            fileName: file.name,
-            fileSize: file.size,
-            mimeType: file.type,
-          });
-        } catch (conversionError) {
-          console.warn(
-            '[ReviewPage] File conversion failed, falling back to base64:',
-            conversionError,
-          );
-          // Fallback to base64 approach
-          formData.append('imageBase64', base64Data);
-          formData.append('imageMimeType', mimeType);
-          console.log('[ReviewPage] FormData prepared with base64 fallback:', {
-            promptLength: enhancedPrompt.length,
-            mimeType,
-            base64Length: base64Data.length,
-          });
-        }
-      } else if (imageFile) {
-        // Use file approach for uploaded/fetched images
-        formData.append('imageFiles', imageFile);
-        console.log('[ReviewPage] FormData prepared with file:', {
-          promptLength: enhancedPrompt.length,
-          imageFileName: imageFile.name,
-          imageFileSize: imageFile.size,
-        });
-      }
-
-      addLog('📡 Sending request to /api/gemini/edit...');
-      console.log('[ReviewPage] Request details:', {
-        useBase64,
-        hasImageFile: !!imageFile,
-        formDataKeys: Array.from(formData.keys()),
-      });
-
-      // Add a small delay to prevent rapid successive requests
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      let response = await fetch('/api/gemini/edit', {
-        method: 'POST',
-        body: formData,
-      });
-
-      // If the main API fails with 500, try the simple fallback
-      if (!response.ok && response.status === 500) {
-        addLog('🔄 Main API failed, trying simplified approach...');
-        console.log('[ReviewPage] Trying fallback API due to 500 error');
-
-        response = await fetch('/api/gemini/edit-simple', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (response.ok) {
-          addLog('✅ Fallback API succeeded!');
-        }
-      }
-
-      console.log('[ReviewPage] API response status:', response.status);
-      addLog(`📡 API response status: ${response.status}`);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[ReviewPage] API error response:', errorText);
-
-        let errorData: { error?: string } = {};
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { error: errorText };
-        }
-
-        const errorMessage =
-          errorData.error || response.statusText || 'Unknown error';
-        addLog(`❌ Gemini API error (${response.status}): ${errorMessage}`);
-
-        // Provide more specific error messages based on status
-        if (response.status === 500) {
-          addLog(
-            '💡 This might be due to image complexity or temporary service issues',
-          );
-          addLog('🔄 Try with a simpler image or wait a moment and try again');
-        } else if (response.status === 400) {
-          addLog(
-            '💡 Check that your image is in a supported format (JPEG, PNG, WebP, GIF)',
-          );
-        } else if (response.status === 429) {
-          addLog(
-            '💡 Rate limit reached - please wait a moment before trying again',
-          );
-        }
-
-        throw new Error(`Gemini API error: ${errorMessage}`);
-      }
-
-      const result = await response.json();
-      console.log('[ReviewPage] API success response:', {
-        hasImage: !!result.image,
-        hasImageBytes: !!result.image?.imageBytes,
-        mimeType: result.image?.mimeType,
-      });
-
-      addLog('✅ Gemini image generation successful!');
-
-      if (result.image && result.image.imageBytes) {
-        addLog('🎨 Processing generated image...');
-        const imageUrl = `data:${result.image.mimeType};base64,${result.image.imageBytes}`;
-        console.log(
-          '[ReviewPage] Setting updatedImageSrc to:',
-          imageUrl.substring(0, 100) + '...',
-        );
-        setUpdatedImageSrc(imageUrl);
-        addLog('🎉 New brand showcase ready!');
-        console.log(
-          '[ReviewPage] Generated image URL created, length:',
-          imageUrl.length,
-        );
-      } else {
-        console.error('[ReviewPage] No image data in response:', result);
-        throw new Error('No image data received from Gemini');
-      }
-    } catch (error) {
-      console.error('[ReviewPage] Error generating image with Gemini:', error);
-      addLog(
-        `❌ Generation failed: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`,
-      );
-      addLog('🔄 Loading fallback demo image...');
-
-      // Fallback to demo image
-      setUpdatedImageSrc(
-        'https://images.unsplash.com/photo-1710799885122-428e63eff691?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcmVhdGl2ZSUyMGJ1c2luZXNzJTIwd2Vic2l0ZSUyMG1vY2t1cCUyMGRlc2lnbnxlbnwxfHx8fDE3NTc3NTQ5Mjd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-      );
-      addLog('📷 Demo showcase loaded');
-    } finally {
-      console.log('[ReviewPage] Image generation process completed');
-      setIsGeneratingImage(false);
-    }
+    await generateImage(generateImagePrompt, uploadedImage, updatedImageSrc);
   };
 
   const calculateProgress = () => {
@@ -451,15 +146,8 @@ export default function ReviewPage() {
         );
         URL.revokeObjectURL(updatedImageSrc);
       }
-      if (uploadedImagePreview && uploadedImagePreview.startsWith('blob:')) {
-        console.log(
-          '[ReviewPage] Cleaning up uploaded image preview URL:',
-          uploadedImagePreview,
-        );
-        URL.revokeObjectURL(uploadedImagePreview);
-      }
     };
-  }, [updatedImageSrc, uploadedImagePreview]);
+  }, [updatedImageSrc]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -487,7 +175,7 @@ export default function ReviewPage() {
                         id="image-upload"
                         type="file"
                         accept="image/*"
-                        onChange={handleImageUpload}
+                        onChange={handleImageUploadChange}
                         className="hidden"
                       />
                       <Button variant="outline" className="w-full" asChild>
@@ -501,12 +189,7 @@ export default function ReviewPage() {
                     <Button
                       variant="ghost"
                       onClick={() => {
-                        console.log('[ReviewPage] Clearing uploaded image');
-                        setUploadedImage(null);
-                        if (uploadedImagePreview) {
-                          URL.revokeObjectURL(uploadedImagePreview);
-                        }
-                        setUploadedImagePreview('');
+                        clearUploadedImage();
                         setUpdatedImageSrc('');
                       }}
                     >
@@ -520,28 +203,6 @@ export default function ReviewPage() {
                     {(uploadedImage.size / 1024 / 1024).toFixed(2)}MB)
                   </p>
                 )}
-                {/* Debug info */}
-                <div className="text-xs text-muted-foreground bg-gray-50 dark:bg-gray-900 p-2 rounded">
-                  <p>Debug - Current image source:</p>
-                  <p>
-                    • Generated: {updatedImageSrc ? 'Yes' : 'No'}{' '}
-                    {updatedImageSrc &&
-                      `(${updatedImageSrc.substring(0, 30)}...)`}
-                  </p>
-                  <p>
-                    • Uploaded: {uploadedImagePreview ? 'Yes' : 'No'}{' '}
-                    {uploadedImagePreview &&
-                      `(${uploadedImagePreview.substring(0, 30)}...)`}
-                  </p>
-                  <p>
-                    • Using:{' '}
-                    {updatedImageSrc
-                      ? 'Generated'
-                      : uploadedImagePreview
-                      ? 'Uploaded'
-                      : 'Default'}
-                  </p>
-                </div>
               </CardHeader>
               <CardContent className="p-6">
                 {/* Show both original and generated images side by side when we have a generated image */}
@@ -626,7 +287,7 @@ export default function ReviewPage() {
                             URL.revokeObjectURL(updatedImageSrc);
                           }
                           setUpdatedImageSrc('');
-                          setGenerationLogs([]);
+                          clearLogs();
                         }}
                         disabled={isGeneratingImage}
                       >
@@ -648,17 +309,10 @@ export default function ReviewPage() {
                           setUpdatedImageSrc('');
 
                           // Clear uploaded image
-                          if (
-                            uploadedImagePreview &&
-                            uploadedImagePreview.startsWith('blob:')
-                          ) {
-                            URL.revokeObjectURL(uploadedImagePreview);
-                          }
-                          setUploadedImagePreview('');
-                          setUploadedImage(null);
+                          clearUploadedImage();
 
                           // Clear logs and prompt
-                          setGenerationLogs([]);
+                          clearLogs();
                           setGenerateImagePrompt('');
                         }}
                         disabled={isGeneratingImage}
@@ -917,9 +571,7 @@ export default function ReviewPage() {
                                     '[ReviewPage] Resetting to original image',
                                   );
                                   setUpdatedImageSrc('');
-                                  addLog(
-                                    '🔄 Reset to original image for fresh editing',
-                                  );
+                                  clearLogs();
                                 }}
                                 disabled={isGeneratingImage}
                               >
@@ -953,6 +605,29 @@ export default function ReviewPage() {
             )}
           </CardContent>
         </Card>
+        <div className="mt-16">
+          {/* Debug info */}
+          <div className="text-xs text-muted-foreground bg-gray-50 dark:bg-gray-900 p-2 rounded">
+            <p>Debug - Current image source:</p>
+            <p>
+              • Generated: {updatedImageSrc ? 'Yes' : 'No'}{' '}
+              {updatedImageSrc && `(${updatedImageSrc.substring(0, 30)}...)`}
+            </p>
+            <p>
+              • Uploaded: {uploadedImagePreview ? 'Yes' : 'No'}{' '}
+              {uploadedImagePreview &&
+                `(${uploadedImagePreview.substring(0, 30)}...)`}
+            </p>
+            <p>
+              • Using:{' '}
+              {updatedImageSrc
+                ? 'Generated'
+                : uploadedImagePreview
+                ? 'Uploaded'
+                : 'Default'}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
