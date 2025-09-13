@@ -65,6 +65,7 @@
 ## Configuration Files
 
 - **package.json**: Dependencies and scripts
+- **pnpm-lock.yaml**: pnpm lock file (replaces package-lock.json)
 - **tsconfig.json**: TypeScript configuration
 - **next.config.ts**: Next.js configuration
 - **tailwind.config.js**: Tailwind CSS configuration

@@ -1,5 +1,15 @@
 # Technology Stack & Dependencies
 
+## Development Notes
+
+**IMPORTANT**: Do not run `pnpm dev` - the development server should not be started automatically.
+
+## Package Management
+
+- **pnpm**: Fast, disk space efficient package manager
+- **Lock File**: Uses `pnpm-lock.yaml` instead of `package-lock.json`
+- **Commands**: Use `pnpm install`, `pnpm build`, `pnpm start`, `pnpm lint`
+
 ## Core Framework
 
 - **Next.js 15**: React framework with App Router
@@ -36,6 +46,7 @@
 ## Runtime Requirements
 
 - **Node.js**: Latest LTS version recommended
+- **pnpm**: Package manager (install with `npm install -g pnpm`)
 - **Environment Variables**: GEMINI_API_KEY required
 - **Paid Tier**: Required for Veo 3, Imagen 4, and Gemini 2.5 Flash Image
 
