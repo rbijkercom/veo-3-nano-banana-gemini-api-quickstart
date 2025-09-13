@@ -26,7 +26,6 @@ export default function ReviewPage() {
   const {
     uploadedImage,
     uploadedImagePreview,
-    isUploading,
     handleImageUpload,
     clearUploadedImage,
   } = useImageUpload();
@@ -162,47 +161,12 @@ export default function ReviewPage() {
         </div>
 
         {/* Main Content Layout */}
-        <div className="grid grid-cols-1 gap-8 mb-8">
+        <div className="grid grid-cols-1  gap-8 mb-8">
           {/* Left Column - Brand Identity Showcase (60%) */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-4">
             <Card>
               <CardHeader>
                 <CardTitle>Brand Identity Showcase</CardTitle>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <label htmlFor="image-upload" className="cursor-pointer">
-                      <Input
-                        id="image-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUploadChange}
-                        className="hidden"
-                      />
-                      <Button variant="outline" className="w-full" asChild>
-                        <span>
-                          {uploadedImage ? 'Change Image' : 'Upload Your Image'}
-                        </span>
-                      </Button>
-                    </label>
-                  </div>
-                  {uploadedImage && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        clearUploadedImage();
-                        setUpdatedImageSrc('');
-                      }}
-                    >
-                      Clear
-                    </Button>
-                  )}
-                </div>
-                {uploadedImage && (
-                  <p className="text-sm text-muted-foreground">
-                    Uploaded: {uploadedImage.name} (
-                    {(uploadedImage.size / 1024 / 1024).toFixed(2)}MB)
-                  </p>
-                )}
               </CardHeader>
               <CardContent className="p-6">
                 {/* Show both original and generated images side by side when we have a generated image */}
@@ -330,7 +294,7 @@ export default function ReviewPage() {
                           <ImageWithFallback
                             src={uploadedImagePreview}
                             alt="Business website Brand Identity Showcase showing logo, tagline and intro message"
-                            className={`w-full h-auto rounded-lg shadow-lg transition-opacity duration-500 ${
+                            className={`w-full h-auto transition-opacity duration-500 ${
                               isGeneratingImage ? 'opacity-50' : 'opacity-100'
                             }`}
                           />

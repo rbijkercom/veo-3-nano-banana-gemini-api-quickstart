@@ -87,6 +87,33 @@ const VeoStudio: React.FC = () => {
     };
   }, [imageFile]);
 
+  // Load default image on component mount
+  const hasLoadedDefaultRef = useRef(false);
+  useEffect(() => {
+    const loadDefaultImage = async () => {
+      if (hasLoadedDefaultRef.current) return;
+
+      try {
+        console.log('[VeoStudio] Loading default image...');
+        const response = await fetch('/carv-hero-home-small.png');
+        const blob = await response.blob();
+        const file = new File([blob], 'carv-hero-home-small.png', {
+          type: blob.type || 'image/png',
+        });
+        setImageFile(file);
+        hasLoadedDefaultRef.current = true;
+        console.log('[VeoStudio] Default image loaded successfully');
+      } catch (error) {
+        console.error('[VeoStudio] Failed to load default image:', error);
+      }
+    };
+
+    // Only load default image if no image is currently set
+    if (!imageFile && !generatedImage && !hasLoadedDefaultRef.current) {
+      loadDefaultImage();
+    }
+  }, [imageFile, generatedImage]); // Include dependencies
+
   const [operationName, setOperationName] = useState<VeoOperationName>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
